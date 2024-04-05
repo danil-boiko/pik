@@ -16,10 +16,18 @@ export class LayersService {
     });
 
   constructor(
-    private readonly http: HttpClient, 
+    private readonly http: HttpClient,
   ) { }
 
-  public fetchLayer(): Observable<GeoJSON> {
+  public fetchAllLayers(): Observable<GeoJSON> {
     return this.http.get<GeoJSON>(`${this.API}/`);
+  }
+
+  public fetchLayerById(layerId:number): Observable<GeoJSON> {
+    return this.http.get<GeoJSON>(`${this.API}/layers/${layerId}`);
+  }
+
+  public fetchLayersIntersection(): Observable<GeoJSON> {
+    return this.http.get<GeoJSON>(`${this.API}/layers-intersection`);
   }
 }

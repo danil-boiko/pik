@@ -3,6 +3,7 @@ import geoalchemy2 as gsa
 from geoalchemy2.shape import to_shape
 import json
 from shapely.geometry import shape
+from shapely.geometry import Polygon
 from pathlib import Path
 import config
 
@@ -43,5 +44,58 @@ def to_geojson(records):
 
 def get_all():
     with eng.connect() as conn:
-        cur = conn.execute(sa.select([table.c.id, table.c.name, table.c.geometry.ST_AsGeoJSON().label('geometry')]))
+        cur = conn.execute(
+            sa.select([
+                table.c.id, 
+                table.c.name, 
+                table.c.geometry.ST_AsGeoJSON().label('geometry')
+                ]))
         return to_geojson(cur)
+
+def get_by_id(layer_id):
+    with eng.connect() as conn:
+        cur = conn.execute(
+            sa.select([
+                table.c.id,
+                table.c.name,
+                table.c.geometry.ST_AsGeoJSON().label('geometry')
+            ]).where(table.c.id == layer_id)
+        )
+        return to_geojson(cur)
+
+def calculate_intersection(data):
+    intersectionArray = None
+    
+    for i in range(len(data)):
+        poly1 = Polygon(json.loads(data[i]['geometry'])['coordinates'][0])
+        print(poly1)
+        for j in range(i+1, len(data)):
+            poly2 = Polygon(json.loads(data[j]['geometry'])['coordinates'][0])
+            if intersectionArray is None:
+                intersectionArray = poly1.intersection(poly2)
+            else:
+                intersectionArray = intersectionArray.intersection(poly1.intersection(poly2))
+    
+    if intersectionArray is None:
+        return "No intersection found"
+    else:
+        intersection_feature = {
+            'type': 'Feature',
+            'properties': {'name': 'Intersection'},
+            'geometry': {
+                'type': 'Polygon',
+                'coordinates': [list(intersectionArray.exterior.coords)]
+            }
+        }
+        return {'type': 'FeatureCollection', 'features': [intersection_feature]}
+
+def get_intersection():
+    with eng.connect() as conn:
+        cur = conn.execute(
+            sa.select([
+                table.c.id, 
+                table.c.name, 
+                table.c.geometry.ST_AsGeoJSON().label('geometry')
+                ])).fetchall()
+        return calculate_intersection(cur)
+       

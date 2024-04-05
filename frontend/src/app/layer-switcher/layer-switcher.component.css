@@ -1,0 +1,23 @@
+.layer-toggler {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  background-color: white;
+  border-radius: 20px;
+  z-index: 1000;
+  padding: 15px;
+
+  .layer-toggler__title {
+    font-size: 25px;
+  }
+
+  .layer-toggler__desc {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  label,
+  input[type="radio"] {
+    cursor: pointer;
+  }
+}
